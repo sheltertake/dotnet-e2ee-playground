@@ -1,13 +1,15 @@
 ﻿using System.Linq;
+using System.Text;
 
 namespace E2eeLibrary
 {
     public static class EncryptDecrypt
     {
-        private const byte MAX_CHAR_CODE = 125;
-        private const byte MIN_CHAR_CODE = 32;
-        private const byte LIMIT_CHAR_CODE = MIN_CHAR_CODE - 1;
-        private const byte MAX_CHAR_ALLOWED = MAX_CHAR_CODE - MIN_CHAR_CODE + 1;
+        private const byte MAX_CHAR_CODE_125 = 125;
+        private const byte MIN_CHAR_CODE_32 = 32;
+        private const byte NUM_CHAR_ALLOWED_94 = MAX_CHAR_CODE_125 - MIN_CHAR_CODE_32 + 1;
+        private const byte LOWER_SEGMENT_BOUND_31 = MIN_CHAR_CODE_32 - 1;
+        private const byte UPPER_SEGMENT_BOUND_126 = MAX_CHAR_CODE_125 + 1;
         /*
          * 
             The algorithm used to encrypt the text in the design was a block cipher with the following rules: The
@@ -29,51 +31,58 @@ namespace E2eeLibrary
          */
         public static string Encrypt(this string message, string key)
         {
+            return EncryptDecryptToString(message, key);
+        }
+        public static byte[] Encrypt(this byte[] message, string key)
+        {
             return EncryptDecript(message, key);
         }
         public static string Decrypt(this string message, string key)
         {
+            return EncryptDecryptToString(message, key, false);
+        }
+        public static byte[] Decrypt(this byte[] message, string key)
+        {
             return EncryptDecript(message, key, false);
         }
-
-        private static string EncryptDecript(string message, string key, bool leftDirection = true)
+        private static string EncryptDecryptToString(string message, string key, bool leftDirection = true)
         {
-            // TRAP 2 - IGNORED - The message is split in chunks of length key.size
-            // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
-
-            //  n is the sum of the ASCII decimal codes of the encryption key
-            int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
-            int restToSum = sumKeyToAsciBytes % MAX_CHAR_ALLOWED;
-            int limit = message.Length;
-
-            //char[] shiftedChars = new char[message.Length];
-            unsafe
+            var bytes = Encoding.ASCII.GetBytes(message);
+            var decrypted = EncryptDecript(bytes, key, leftDirection);
+            //return Encoding.ASCII.GetString(decrypted);
+            string result = string.Create(decrypted.Length, decrypted, (chars, buf) =>
             {
-                fixed (char* ptr = message)
+                var limit = chars.Length;
+                for (int i = 0; i < limit; i++) chars[i] = (char)buf[i];
+            });
+            return result;
+        }
+        private static byte[] EncryptDecript(byte[] bytes, string key, bool leftDirection = true)
+        {
+            int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
+            int restToSum = sumKeyToAsciBytes % NUM_CHAR_ALLOWED_94;
+            int limit = bytes.Length;
+
+            for (int i = 0; i < limit; i++)
+            {
+                if (leftDirection)
                 {
-                    for (int i = 0; i < limit; i++)
-                    {
-                        int newAsciiCharPos = leftDirection ? message[i] + restToSum : message[i] - restToSum;
+                    bytes[i] = (byte)(bytes[i] + restToSum);
+                    if (bytes[i] > MAX_CHAR_CODE_125)
+                        bytes[i] = (byte)(LOWER_SEGMENT_BOUND_31 + (bytes[i] - MAX_CHAR_CODE_125));
 
-
-                        if (leftDirection && newAsciiCharPos > MAX_CHAR_CODE)
-                        {
-                            newAsciiCharPos = LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE);
-                        }
-                        else if (!leftDirection && newAsciiCharPos < MIN_CHAR_CODE)
-                        {
-                            newAsciiCharPos = MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
-                        }
-
-                        //shiftedChars[i] = (char)newAsciiCharPos;
-
-                        ptr[i] = (char) newAsciiCharPos;
-                    }
                 }
+                else
+                {
+                    bytes[i] = (byte)(bytes[i] - restToSum);
+                    if (bytes[i] < MIN_CHAR_CODE_32)
+                        bytes[i] = (byte)(UPPER_SEGMENT_BOUND_126 - (MIN_CHAR_CODE_32 - bytes[i]));
+                }
+
             }
             // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
 
-            return message;
+            return bytes;
         }
     }
 }

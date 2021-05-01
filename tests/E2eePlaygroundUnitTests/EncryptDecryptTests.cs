@@ -58,6 +58,21 @@ namespace E2eePlayegroundUnitTests
             // assert
             input.Should().Be(sut);
         }
+        [TestCase("titanic")]
+        [TestCase("minecraft")]
+        [TestCase("javascript")]
+        [TestCase("fullstackfullstack")]// 2 chunks
+        [TestCase("fullstackfullstackfull")]// 3 chunks - 3rd chunk not full
+        public void EncryptDecryptBytesTest(string input)
+        {
+            // arrange
+            byte[] bytes = Encoding.ASCII.GetBytes(input);
+            // act
+            var sut = bytes.Encrypt(KEY).Decrypt(KEY);
+            var str = Encoding.ASCII.GetString(bytes);
+            // assert
+            input.Should().BeEquivalentTo(str);
+        }
 
         
         [Test]

@@ -5,11 +5,16 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2eePlayegroundUnitTests", "tests\E2eePlaygroundUnitTests\E2eePlayegroundUnitTests.csproj", "{1048F000-5FDB-4716-8B1E-7308789E5EBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2eeLibrary", "src\E2eeLibrary\E2eeLibrary.csproj", "{C8536E1A-9743-4C7A-90E5-786E147A100A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2eeLibrary", "src\E2eeLibrary\E2eeLibrary.csproj", "{C8536E1A-9743-4C7A-90E5-786E147A100A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9685F27C-C2E7-4068-991C-8632441897AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2eeLibraryBenchmark", "tests\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj", "{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2eeLibraryBenchmark", "tests\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj", "{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C1F71F3F-22B7-4A81-81FA-D6ED19779B94}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

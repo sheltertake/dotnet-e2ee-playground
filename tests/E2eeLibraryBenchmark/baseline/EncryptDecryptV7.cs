@@ -1,10 +1,9 @@
-﻿using System;
-using System.Data;
-using System.Linq;
+﻿using System.Linq;
+using System.Text;
 
 namespace E2eeLibraryBenchmark.Baseline
 {
-    public static class EncryptDecryptV4
+    public static class EncryptDecryptV7
     {
         private const byte MAX_CHAR_CODE = 125;
         private const byte MIN_CHAR_CODE = 32;
@@ -31,22 +30,33 @@ namespace E2eeLibraryBenchmark.Baseline
          */
         public static string Encrypt(this string message, string key)
         {
+            return EncryptDecryptToString(message, key);
+        }
+        public static byte[] Encrypt(this byte[] message, string key)
+        {
             return EncryptDecript(message, key);
         }
-        //public static string Encrypt(this ReadOnlySpan<char> message, string key)
-        //{
-        //    return EncryptDecript(message, key);
-        //}
         public static string Decrypt(this string message, string key)
+        {
+            return EncryptDecryptToString(message, key, false);
+        }
+        public static byte[] Decrypt(this byte[] message, string key)
         {
             return EncryptDecript(message, key, false);
         }
-        //public static string Decrypt(this ReadOnlySpan<char> message, string key)
-        //{
-        //    return EncryptDecript(message, key, false);
-        //}
-
-        private static string EncryptDecript(string message, string key, bool leftDirection = true)
+        private static string EncryptDecryptToString(string message, string key, bool leftDirection = true)
+        {
+            var bytes = Encoding.ASCII.GetBytes(message);
+            var decrypted = EncryptDecript(bytes, key, leftDirection);
+            //return Encoding.ASCII.GetString(decrypted);
+            string result = string.Create(decrypted.Length, decrypted, (chars, buf) =>
+            {
+                var limit = chars.Length;
+                for (int i = 0; i < limit; i++) chars[i] = (char)buf[i];
+            });
+            return result;
+        }
+        private static byte[] EncryptDecript(byte[] bytes, string key, bool leftDirection = true)
         {
             // TRAP 2 - IGNORED - The message is split in chunks of length key.size
             // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
@@ -54,39 +64,34 @@ namespace E2eeLibraryBenchmark.Baseline
             //  n is the sum of the ASCII decimal codes of the encryption key
             int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             int restToSum = sumKeyToAsciBytes % MAX_CHAR_ALLOWED;
-            int limit = message.Length;
+            int limit = bytes.Length;
+
 
             //char[] shiftedChars = new char[message.Length];
+            for (int i = 0; i < limit; i++)
+            {
+                int asciiCharPos = bytes[i];
+                int newAsciiCharPos = leftDirection ?
+                    asciiCharPos + restToSum :
+                    asciiCharPos - restToSum;
 
-            string result = string.Create(message.Length, message, (chars, buf) => {
 
-                for (int i = 0; i < limit; i++)
+                if (leftDirection && newAsciiCharPos > MAX_CHAR_CODE)
                 {
-                    int asciiCharPos = buf[i];
-                    int newAsciiCharPos = leftDirection ?
-                        asciiCharPos + restToSum :
-                        asciiCharPos - restToSum;
-
-
-                    if (leftDirection && newAsciiCharPos > MAX_CHAR_CODE)
-                    {
-                        newAsciiCharPos = LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE);
-                    }
-                    else if (!leftDirection && newAsciiCharPos < MIN_CHAR_CODE)
-                    {
-                        newAsciiCharPos = MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
-                    }
-
-                    asciiCharPos = (char)newAsciiCharPos;
-
-                    chars[i] = (char)asciiCharPos;
+                    newAsciiCharPos = LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE);
                 }
-            });
+                else if (!leftDirection && newAsciiCharPos < MIN_CHAR_CODE)
+                {
+                    newAsciiCharPos = MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
+                }
 
+                asciiCharPos = (char)newAsciiCharPos;
 
+                bytes[i] = (byte)asciiCharPos;
+            }
             // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
 
-            return result;
+            return bytes;
         }
     }
 }
