@@ -45,6 +45,18 @@ namespace E2eePlayegroundUnitTests
             // assert
             sut.Should().Be(expected);
         }
+        [TestCase("fullstackfullstack")]// 2 chunks
+        [TestCase("fullstackfullstackfull")]// 3 chunks - 3rd chunk not full
+        public void EncryptDecryptTest(string input)
+        {
+            // arrange
+            var key = "fullstack";
+            // act
+            var sut = Decrypt(key, Encrypt(key, input));
+
+            // assert
+            input.Should().Be(sut);
+        }
 
         /*
          * 
@@ -70,17 +82,15 @@ namespace E2eePlayegroundUnitTests
             // The message is split in chunks of length key.size
             // In cryptography, key size or key length is the size (measured in bits or bytes) 
             var keySize = key.Length;
-            var chunks = SplitBy(message, keySize);
-
-            //  Each chunk is reversed (eg. asdfg --> gfdsa)
-            var reversedChunks = chunks.ToList();//.Select(x => Reverse(x)).ToList();
+            //  TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
+            var chunks = SplitBy(message, keySize).ToList();
 
             //  n is the sum of the ASCII decimal codes of the encryption key
             var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             var numCharAllowed = 125 - 32 + 1;
             var restToSum = sumKeyToAsciBytes % numCharAllowed;
             var retChunks = new List<string>();
-            foreach (var chunk in reversedChunks)
+            foreach (var chunk in chunks)
             {
 
                 var shiftedChars = new List<char>();
@@ -96,6 +106,7 @@ namespace E2eePlayegroundUnitTests
 
                     shiftedChars.Add((char)asciiCharPos);
                 }
+                //  TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
                 retChunks.Add(string.Concat(shiftedChars));
 
             }
@@ -117,17 +128,15 @@ namespace E2eePlayegroundUnitTests
             // The message is split in chunks of length key.size
             // In cryptography, key size or key length is the size (measured in bits or bytes) 
             var keySize = key.Length;
-            var chunks = SplitBy(message, keySize);
-
-            //  Each chunk is reversed (eg. asdfg --> gfdsa)
-            var reversedChunks = chunks.ToList();//.Select(x => Reverse(x)).ToList();
+            //  TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
+            var chunks = SplitBy(message, keySize).ToList();
 
             //  n is the sum of the ASCII decimal codes of the encryption key
             var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             var numCharAllowed = 125 - 32 + 1;
             var restToSum = sumKeyToAsciBytes % numCharAllowed;
             var retChunks = new List<string>();
-            foreach (var chunk in reversedChunks)
+            foreach (var chunk in chunks)
             {
 
                 var shiftedChars = new List<char>();
@@ -143,10 +152,20 @@ namespace E2eePlayegroundUnitTests
 
                     shiftedChars.Add((char)asciiCharPos);
                 }
+                //  TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
                 retChunks.Add(string.Concat(shiftedChars));
 
             }
             return string.Concat(retChunks);
         }
+
+        // https://stackoverflow.com/questions/228038/best-way-to-reverse-a-string
+        //public static string Reverse(string s)
+        //{
+        //    char[] charArray = s.ToCharArray();
+        //    Array.Reverse(charArray);
+        //    return new string(charArray);
+        //}
+
     }
 }
