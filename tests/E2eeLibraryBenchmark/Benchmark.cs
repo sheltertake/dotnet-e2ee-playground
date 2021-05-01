@@ -45,27 +45,50 @@ namespace E2eeLibraryBenchmark
         }
 
         string input;
+        //private static readonly string s_data = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, 1000));
+        //public static ReadOnlySpan<char> input => s_data; // perfectly valid conversion
 
-        [Params(1000, 1_000_000)]
+        [Params(0, 100, 1000)] // 1_000_000
+        //[Params(1000)]
         public int N;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, 1_000_000));
+            if (N == 0)
+                input = "simplestring";
+            else
+                input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
         }
 
         [Benchmark(Baseline = true)]
-        public bool EncryptDecryptBaseline()
+        public bool EncryptDecryptV1Baseline()
         {
-            return BaseLine.EncryptDecrypt.Encrypt(input, KEY) == BaseLine.EncryptDecrypt.Decrypt(input, KEY);
+            return BaseLine.EncryptDecryptV1.Encrypt(input, KEY) == BaseLine.EncryptDecryptV1.Decrypt(input, KEY);
         }
-        [Benchmark()]
+        [Benchmark]
+        public bool EncryptDecryptV2()
+        {
+            return BaseLine.EncryptDecryptV2.Encrypt(input, KEY) == BaseLine.EncryptDecryptV2.Decrypt(input, KEY);
+        }
+
+        [Benchmark]
+        public bool EncryptDecryptV3()
+        {
+            return BaseLine.EncryptDecryptV3.Encrypt(input, KEY) == BaseLine.EncryptDecryptV3.Decrypt(input, KEY);
+        }
+
+        [Benchmark]
+        public bool EncryptDecryptV4()
+        {
+            return BaseLine.EncryptDecryptV4.Encrypt(input, KEY) == BaseLine.EncryptDecryptV4.Decrypt(input, KEY);
+        }
+
+        [Benchmark]
         public bool EncryptDecrypt()
         {
             return input.Encrypt(KEY) == input.Decrypt(KEY);
         }
-
     }
 
     public class Program
