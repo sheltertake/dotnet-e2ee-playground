@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2eePlayegroundUnitTests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2eeLibrary", "src\E2eeLibrary\E2eeLibrary.csproj", "{C8536E1A-9743-4C7A-90E5-786E147A100A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9685F27C-C2E7-4068-991C-8632441897AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2eeLibraryBenchmark", "tests\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj", "{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,9 +25,17 @@ Global
 		{C8536E1A-9743-4C7A-90E5-786E147A100A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8536E1A-9743-4C7A-90E5-786E147A100A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8536E1A-9743-4C7A-90E5-786E147A100A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF89EEC9-8187-4062-A1C1-74FDB5024BCC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1048F000-5FDB-4716-8B1E-7308789E5EBA} = {9685F27C-C2E7-4068-991C-8632441897AE}
+		{BF89EEC9-8187-4062-A1C1-74FDB5024BCC} = {9685F27C-C2E7-4068-991C-8632441897AE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D984A2A6-1CEE-4669-9386-1EC385C2AD4D}
