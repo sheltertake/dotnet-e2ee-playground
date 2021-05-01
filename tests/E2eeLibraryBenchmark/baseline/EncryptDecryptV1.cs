@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BaseLine
+namespace E2eeLibraryBenchmark.Baseline
 {
     public static class EncryptDecryptV1
     {

@@ -1,17 +1,94 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using E2eeLibrary;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using E2eeLibraryBenchmark.Baseline;
 
 namespace E2eeLibraryBenchmark
 {
     //[DryJob]
-    [ShortRunJob]
+    [SimpleJob]
     [MemoryDiagnoser]
-    //[RankColumn, MarkdownExporterAttribute.StackOverflow]
-    public class Benchmark
+    [AllStatisticsColumn, RankColumn, MarkdownExporterAttribute.StackOverflow]
+    public class BenchmarkSimple : BenchmarkBase
+    {
+        [Params(0)]
+        public int N;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            input = "simplestring";
+            bytes = Encoding.ASCII.GetBytes(input);
+        }
+    }
+
+    [SimpleJob]
+    [MemoryDiagnoser]
+    [AllStatisticsColumn, RankColumn, MarkdownExporterAttribute.StackOverflow]
+    public class BenchmarksLineText : BenchmarkBase
+    {
+        [Params(1)]
+        public int N;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
+            bytes = Encoding.ASCII.GetBytes(input);
+        }
+    }
+
+    [SimpleJob]
+    [MemoryDiagnoser]
+    [AllStatisticsColumn, RankColumn, MarkdownExporterAttribute.StackOverflow]
+    public class Benchmarks100LineText : BenchmarkBase
+    {
+        [Params(100)]
+        public int N;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
+            bytes = Encoding.ASCII.GetBytes(input);
+        }
+    }
+
+    [SimpleJob]
+    [MemoryDiagnoser]
+    [AllStatisticsColumn, RankColumn, MarkdownExporterAttribute.StackOverflow]
+    public class Benchmarks1000LineText : BenchmarkBase
+    {
+        [Params(1000)]
+        public int N;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
+            bytes = Encoding.ASCII.GetBytes(input);
+        }
+    }
+
+    [SimpleJob]
+    [MemoryDiagnoser]
+    [AllStatisticsColumn, RankColumn, MarkdownExporterAttribute.StackOverflow]
+    public class Benchmarks1MillionLineText : BenchmarkBase
+    {
+        [Params(1_000_000)]
+        public int N;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
+            bytes = Encoding.ASCII.GetBytes(input);
+        }
+    }
+
+    public abstract class BenchmarkBase
     {
         const string KEY = "fullstack";
         static readonly string[] words = new[]
@@ -22,7 +99,7 @@ namespace E2eeLibraryBenchmark
         };
 
         // borrowed from greg (https://stackoverflow.com/questions/4286487/is-there-any-lorem-ipsum-generator-in-c)
-        static IEnumerable<string> LoremIpsum(Random random, int minWords, int maxWords, int minSentences, int maxSentences, int numLines)
+        protected static IEnumerable<string> LoremIpsum(Random random, int minWords, int maxWords, int minSentences, int maxSentences, int numLines)
         {
             var line = new StringBuilder();
             for (int l = 0; l < numLines; l++)
@@ -44,58 +121,74 @@ namespace E2eeLibraryBenchmark
             }
         }
 
-        string input;
-        //private static readonly string s_data = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, 1000));
-        //public static ReadOnlySpan<char> input => s_data; // perfectly valid conversion
 
-        [Params(0, 100, 1000)] // 1_000_000
-        //[Params(1000)]
-        public int N;
-
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-            if (N == 0)
-                input = "simplestring";
-            else
-                input = string.Concat(LoremIpsum(new Random(), 6, 8, 2, 3, N));
-        }
+        protected string input;
+        protected byte[] bytes;
 
         [Benchmark(Baseline = true)]
-        public bool EncryptDecryptV1Baseline()
+        public bool BEncryptDecryptV1BaselineString()
         {
-            return BaseLine.EncryptDecryptV1.Encrypt(input, KEY) == BaseLine.EncryptDecryptV1.Decrypt(input, KEY);
+            return EncryptDecryptV1.Encrypt(input, KEY) == EncryptDecryptV1.Decrypt(input, KEY);
         }
         [Benchmark]
-        public bool EncryptDecryptV2()
+        public bool BEncryptDecryptV2String()
         {
-            return BaseLine.EncryptDecryptV2.Encrypt(input, KEY) == BaseLine.EncryptDecryptV2.Decrypt(input, KEY);
-        }
-
-        [Benchmark]
-        public bool EncryptDecryptV3()
-        {
-            return BaseLine.EncryptDecryptV3.Encrypt(input, KEY) == BaseLine.EncryptDecryptV3.Decrypt(input, KEY);
+            return EncryptDecryptV2.Encrypt(input, KEY) == EncryptDecryptV2.Decrypt(input, KEY);
         }
 
         [Benchmark]
-        public bool EncryptDecryptV4()
+        public bool BEncryptDecryptV3String()
         {
-            return BaseLine.EncryptDecryptV4.Encrypt(input, KEY) == BaseLine.EncryptDecryptV4.Decrypt(input, KEY);
+            return EncryptDecryptV3.Encrypt(input, KEY) == EncryptDecryptV3.Decrypt(input, KEY);
         }
 
         [Benchmark]
-        public bool EncryptDecrypt()
+        public bool BEncryptDecryptV4String()
         {
-            return input.Encrypt(KEY) == input.Decrypt(KEY);
+            return EncryptDecryptV4.Encrypt(input, KEY) == EncryptDecryptV4.Decrypt(input, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptV5StringUnsafe()
+        {
+            return EncryptDecryptV5.Encrypt(input, KEY) == EncryptDecryptV5.Decrypt(input, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptV6String()
+        {
+            return EncryptDecryptV6.Encrypt(input, KEY) == EncryptDecryptV6.Decrypt(input, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptV6()
+        {
+            return EncryptDecryptV6.Encrypt(bytes, KEY) == EncryptDecryptV6.Decrypt(bytes, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptV7String()
+        {
+            return EncryptDecryptV7.Encrypt(input, KEY) == EncryptDecryptV7.Decrypt(input, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptV7()
+        {
+            return EncryptDecryptV7.Encrypt(bytes, KEY) == EncryptDecryptV7.Decrypt(bytes, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptString()
+        {
+            return E2eeLibrary.EncryptDecrypt.Encrypt(input, KEY) == E2eeLibrary.EncryptDecrypt.Decrypt(input, KEY);
+        }
+        [Benchmark]
+        public bool BEncryptDecryptBytes()
+        {
+            return E2eeLibrary.EncryptDecrypt.Encrypt(bytes, KEY) == E2eeLibrary.EncryptDecrypt.Decrypt(bytes, KEY);
         }
     }
 
     public class Program
     {
         public static void Main(string[] args)
-        {
-            BenchmarkRunner.Run<Benchmark>();
+        {            
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
         }
     }
 }

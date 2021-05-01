@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>E2eeLibraryBenchmark.Benchmarks1MillionLineText-20210501-211852</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19042
+Intel Core i7-6600U CPU 2.60GHz (Skylake), 1 CPU, 4 logical and 2 physical cores
+.NET Core SDK=5.0.202
+  [Host]     : .NET Core 5.0.5 (CoreCLR 5.0.521.16609, CoreFX 5.0.521.16609), X64 RyuJIT
+  DefaultJob : .NET Core 5.0.5 (CoreCLR 5.0.521.16609, CoreFX 5.0.521.16609), X64 RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>                   Method</th><th>N</th><th>Mean</th><th>Error</th><th>StdDev</th><th>StdErr</th><th> Min</th><th>  Q1</th><th>Median</th><th>  Q3</th><th> Max</th><th>Op/s</th><th>Ratio</th><th>Rank</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>BEncryptDecryptV1BaselineString</td><td>1000000</td><td>6,225.1 ms</td><td>11.61 ms</td><td>9.70 ms</td><td>2.69 ms</td><td>6,213.5 ms</td><td>6,218.0 ms</td><td>6,221.2 ms</td><td>6,232.7 ms</td><td>6,242.5 ms</td><td>0.1606</td><td>1.00</td><td>9</td><td>2000.0000</td><td>2000.0000</td><td>2000.0000</td><td>4897150160 B</td>
+</tr><tr><td>BEncryptDecryptV2String</td><td>1000000</td><td>4,497.5 ms</td><td>18.45 ms</td><td>14.40 ms</td><td>4.16 ms</td><td>4,478.4 ms</td><td>4,483.0 ms</td><td>4,499.1 ms</td><td>4,510.2 ms</td><td>4,517.0 ms</td><td>0.2223</td><td>0.72</td><td>8</td><td>2000.0000</td><td>2000.0000</td><td>2000.0000</td><td>3360053256 B</td>
+</tr><tr><td>BEncryptDecryptV3String</td><td>1000000</td><td>1,762.9 ms</td><td>4.43 ms</td><td>4.14 ms</td><td>1.07 ms</td><td>1,758.2 ms</td><td>1,759.1 ms</td><td>1,762.6 ms</td><td>1,765.8 ms</td><td>1,772.5 ms</td><td>0.5673</td><td>0.28</td><td>7</td><td>-</td><td>-</td><td>-</td><td>1221002216 B</td>
+</tr><tr><td>BEncryptDecryptV4String</td><td>1000000</td><td>1,275.5 ms</td><td>2.47 ms</td><td>2.19 ms</td><td>0.58 ms</td><td>1,271.5 ms</td><td>1,274.0 ms</td><td>1,275.5 ms</td><td>1,276.9 ms</td><td>1,279.1 ms</td><td>0.7840</td><td>0.20</td><td>4</td><td>-</td><td>-</td><td>-</td><td>610455184 B</td>
+</tr><tr><td>BEncryptDecryptV5StringUnsafe</td><td>1000000</td><td>959.5 ms</td><td>3.19 ms</td><td>2.98 ms</td><td>0.77 ms</td><td>954.0 ms</td><td>957.8 ms</td><td>959.7 ms</td><td>961.0 ms</td><td>964.5 ms</td><td>1.0422</td><td>0.15</td><td>3</td><td>-</td><td>-</td><td>-</td><td>560 B</td>
+</tr><tr><td>BEncryptDecryptV6String</td><td>1000000</td><td>1,602.5 ms</td><td>16.73 ms</td><td>15.65 ms</td><td>4.04 ms</td><td>1,585.4 ms</td><td>1,590.4 ms</td><td>1,593.9 ms</td><td>1,616.6 ms</td><td>1,630.4 ms</td><td>0.6240</td><td>0.26</td><td>6</td><td>-</td><td>-</td><td>-</td><td>915775496 B</td>
+</tr><tr><td>BEncryptDecryptV6</td><td>1000000</td><td>938.4 ms</td><td>3.47 ms</td><td>3.07 ms</td><td>0.82 ms</td><td>932.9 ms</td><td>936.4 ms</td><td>938.8 ms</td><td>939.7 ms</td><td>944.2 ms</td><td>1.0657</td><td>0.15</td><td>2</td><td>-</td><td>-</td><td>-</td><td>464 B</td>
+</tr><tr><td>BEncryptDecryptV7String</td><td>1000000</td><td>1,779.6 ms</td><td>30.31 ms</td><td>25.31 ms</td><td>7.02 ms</td><td>1,750.7 ms</td><td>1,769.4 ms</td><td>1,773.5 ms</td><td>1,777.6 ms</td><td>1,843.0 ms</td><td>0.5619</td><td>0.29</td><td>7</td><td>-</td><td>-</td><td>-</td><td>915780400 B</td>
+</tr><tr><td>BEncryptDecryptV7</td><td>1000000</td><td>964.9 ms</td><td>3.21 ms</td><td>2.85 ms</td><td>0.76 ms</td><td>961.3 ms</td><td>963.0 ms</td><td>963.8 ms</td><td>966.6 ms</td><td>970.7 ms</td><td>1.0364</td><td>0.16</td><td>3</td><td>-</td><td>-</td><td>-</td><td>464 B</td>
+</tr><tr><td>BEncryptDecryptString</td><td>1000000</td><td>1,557.0 ms</td><td>17.66 ms</td><td>16.52 ms</td><td>4.27 ms</td><td>1,536.1 ms</td><td>1,543.2 ms</td><td>1,554.7 ms</td><td>1,569.9 ms</td><td>1,591.5 ms</td><td>0.6423</td><td>0.25</td><td>5</td><td>-</td><td>-</td><td>-</td><td>915714704 B</td>
+</tr><tr><td>BEncryptDecryptBytes</td><td>1000000</td><td>894.9 ms</td><td>3.02 ms</td><td>2.52 ms</td><td>0.70 ms</td><td>890.7 ms</td><td>893.7 ms</td><td>894.4 ms</td><td>895.2 ms</td><td>899.7 ms</td><td>1.1174</td><td>0.14</td><td>1</td><td>-</td><td>-</td><td>-</td><td>464 B</td>
+</tr></tbody></table>
+</body>
+</html>

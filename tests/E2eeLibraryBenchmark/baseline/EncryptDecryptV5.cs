@@ -1,10 +1,8 @@
-﻿using System;
-using System.Data;
-using System.Linq;
+﻿using System.Linq;
 
 namespace E2eeLibraryBenchmark.Baseline
 {
-    public static class EncryptDecryptV4
+    public static class EncryptDecryptV5
     {
         private const byte MAX_CHAR_CODE = 125;
         private const byte MIN_CHAR_CODE = 32;
@@ -33,18 +31,10 @@ namespace E2eeLibraryBenchmark.Baseline
         {
             return EncryptDecript(message, key);
         }
-        //public static string Encrypt(this ReadOnlySpan<char> message, string key)
-        //{
-        //    return EncryptDecript(message, key);
-        //}
         public static string Decrypt(this string message, string key)
         {
             return EncryptDecript(message, key, false);
         }
-        //public static string Decrypt(this ReadOnlySpan<char> message, string key)
-        //{
-        //    return EncryptDecript(message, key, false);
-        //}
 
         private static string EncryptDecript(string message, string key, bool leftDirection = true)
         {
@@ -57,36 +47,33 @@ namespace E2eeLibraryBenchmark.Baseline
             int limit = message.Length;
 
             //char[] shiftedChars = new char[message.Length];
-
-            string result = string.Create(message.Length, message, (chars, buf) => {
-
-                for (int i = 0; i < limit; i++)
+            unsafe
+            {
+                fixed (char* ptr = message)
                 {
-                    int asciiCharPos = buf[i];
-                    int newAsciiCharPos = leftDirection ?
-                        asciiCharPos + restToSum :
-                        asciiCharPos - restToSum;
-
-
-                    if (leftDirection && newAsciiCharPos > MAX_CHAR_CODE)
+                    for (int i = 0; i < limit; i++)
                     {
-                        newAsciiCharPos = LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE);
-                    }
-                    else if (!leftDirection && newAsciiCharPos < MIN_CHAR_CODE)
-                    {
-                        newAsciiCharPos = MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
-                    }
+                        int newAsciiCharPos = leftDirection ? message[i] + restToSum : message[i] - restToSum;
 
-                    asciiCharPos = (char)newAsciiCharPos;
 
-                    chars[i] = (char)asciiCharPos;
+                        if (leftDirection && newAsciiCharPos > MAX_CHAR_CODE)
+                        {
+                            newAsciiCharPos = LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE);
+                        }
+                        else if (!leftDirection && newAsciiCharPos < MIN_CHAR_CODE)
+                        {
+                            newAsciiCharPos = MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
+                        }
+
+                        //shiftedChars[i] = (char)newAsciiCharPos;
+
+                        ptr[i] = (char)newAsciiCharPos;
+                    }
                 }
-            });
-
-
+            }
             // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
 
-            return result;
+            return message;
         }
     }
 }
