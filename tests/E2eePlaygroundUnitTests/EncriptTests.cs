@@ -7,7 +7,7 @@ using System.Text;
 
 namespace E2eePlayegroundUnitTests
 {
-    public class EncriptTests
+    public class EncryptDecryptTests
     {
 
         //Some examples:
@@ -17,16 +17,35 @@ namespace E2eePlayegroundUnitTests
         [TestCase("titanic", "3(3 -(\"")]
         [TestCase("minecraft", ",(-$\"1 %3")]
         [TestCase("javascript", ") 5 2\"1(/3")]
-        public void TestAlgo(string input, string expected)
+        public void EncryptTest(string input, string expected)
         {
 
             // arrange
             // act
-            var sut = Encript("fullstack", input);
+            var sut = Encrypt("fullstack", input);
 
             // assert
             sut.Should().Be(expected);
         }
+
+        //Some examples:
+        //titanic-> 3(3 - ("
+        //minecraft-> , (-$"1 %3
+        //javascript-> ) 5 2"1(/3
+        [TestCase("titanic", "3(3 -(\"")]
+        [TestCase("minecraft", ",(-$\"1 %3")]
+        [TestCase("javascript", ") 5 2\"1(/3")]
+        public void DecryptTest(string expected, string input)
+        {
+
+            // arrange
+            // act
+            var sut = Decrypt("fullstack", input);
+
+            // assert
+            sut.Should().Be(expected);
+        }
+
         /*
          * 
             The algorithm used to encrypt the text in the design was a block cipher with the following rules: The
@@ -46,7 +65,7 @@ namespace E2eePlayegroundUnitTests
             The given encrypted message was generated following the above steps using fullstack as key. Now it is
             your time to write the decryption algorithm to reverse the process!
          */
-        private static string Encript(string key, string message)
+        private static string Encrypt(string key, string message)
         {
             // The message is split in chunks of length key.size
             // In cryptography, key size or key length is the size (measured in bits or bytes) 
@@ -93,6 +112,41 @@ namespace E2eePlayegroundUnitTests
                 yield return str.Substring(i, chunkLength);
             }
         }
+        private static string Decrypt(string key, string message)
+        {
+            // The message is split in chunks of length key.size
+            // In cryptography, key size or key length is the size (measured in bits or bytes) 
+            var keySize = key.Length;
+            var chunks = SplitBy(message, keySize);
 
+            //  Each chunk is reversed (eg. asdfg --> gfdsa)
+            var reversedChunks = chunks.ToList();//.Select(x => Reverse(x)).ToList();
+
+            //  n is the sum of the ASCII decimal codes of the encryption key
+            var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
+            var numCharAllowed = 125 - 32 + 1;
+            var restToSum = sumKeyToAsciBytes % numCharAllowed;
+            var retChunks = new List<string>();
+            foreach (var chunk in reversedChunks)
+            {
+
+                var shiftedChars = new List<char>();
+                foreach (var c in chunk)
+                {
+                    var asciiCharPos = (int)c;
+                    var newAsciiCharPos = asciiCharPos - restToSum;
+                    if (newAsciiCharPos < 32)
+                    {
+                        newAsciiCharPos = 125 - (31 - newAsciiCharPos);
+                    }
+                    asciiCharPos = (char)newAsciiCharPos;
+
+                    shiftedChars.Add((char)asciiCharPos);
+                }
+                retChunks.Add(string.Concat(shiftedChars));
+
+            }
+            return string.Concat(retChunks);
+        }
     }
 }
