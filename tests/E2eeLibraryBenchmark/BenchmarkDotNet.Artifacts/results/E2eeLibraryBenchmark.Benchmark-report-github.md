@@ -1,5 +1,3 @@
-# dotnet-e2ee-playground
-
 ``` ini
 
 BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19042
