@@ -79,37 +79,31 @@ namespace E2eePlayegroundUnitTests
          */
         private static string Encrypt(string key, string message)
         {
-            // The message is split in chunks of length key.size
-            // In cryptography, key size or key length is the size (measured in bits or bytes) 
-            var keySize = key.Length;
-            //  TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
-            var chunks = SplitBy(message, keySize).ToList();
+            // TRAP 2 - IGNORED - The message is split in chunks of length key.size
+            // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
 
             //  n is the sum of the ASCII decimal codes of the encryption key
             var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             var numCharAllowed = 125 - 32 + 1;
             var restToSum = sumKeyToAsciBytes % numCharAllowed;
             var retChunks = new List<string>();
-            foreach (var chunk in chunks)
+
+            var shiftedChars = new List<char>();
+            foreach (var c in message)
             {
+                var asciiCharPos = (int)c;
+                var newAsciiCharPos = asciiCharPos + restToSum;
 
-                var shiftedChars = new List<char>();
-                foreach (var c in chunk)
-                {
-                    var asciiCharPos = (int)c;
-                    var newAsciiCharPos = asciiCharPos + restToSum;
+                if (newAsciiCharPos > 125)
+                    newAsciiCharPos = 31 + (newAsciiCharPos - 125);
 
-                    if (newAsciiCharPos > 125)
-                        newAsciiCharPos = 31 + ( newAsciiCharPos - 125);
+                asciiCharPos = (char)newAsciiCharPos;
 
-                    asciiCharPos = (char)newAsciiCharPos;
-
-                    shiftedChars.Add((char)asciiCharPos);
-                }
-                //  TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
-                retChunks.Add(string.Concat(shiftedChars));
-
+                shiftedChars.Add((char)asciiCharPos);
             }
+            // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
+            retChunks.Add(string.Concat(shiftedChars));
+
             return string.Concat(retChunks);
         }
 
@@ -125,47 +119,33 @@ namespace E2eePlayegroundUnitTests
         }
         private static string Decrypt(string key, string message)
         {
-            // The message is split in chunks of length key.size
-            // In cryptography, key size or key length is the size (measured in bits or bytes) 
-            var keySize = key.Length;
-            //  TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
-            var chunks = SplitBy(message, keySize).ToList();
+            // TRAP 2 - IGNORED - The message is split in chunks of length key.size
+            // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
 
             //  n is the sum of the ASCII decimal codes of the encryption key
             var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             var numCharAllowed = 125 - 32 + 1;
             var restToSum = sumKeyToAsciBytes % numCharAllowed;
             var retChunks = new List<string>();
-            foreach (var chunk in chunks)
+
+            var shiftedChars = new List<char>();
+            foreach (var c in message)
             {
-
-                var shiftedChars = new List<char>();
-                foreach (var c in chunk)
+                var asciiCharPos = (int)c;
+                var newAsciiCharPos = asciiCharPos - restToSum;
+                if (newAsciiCharPos < 32)
                 {
-                    var asciiCharPos = (int)c;
-                    var newAsciiCharPos = asciiCharPos - restToSum;
-                    if (newAsciiCharPos < 32)
-                    {
-                        newAsciiCharPos = 125 - (31 - newAsciiCharPos);
-                    }
-                    asciiCharPos = (char)newAsciiCharPos;
-
-                    shiftedChars.Add((char)asciiCharPos);
+                    newAsciiCharPos = 125 - (31 - newAsciiCharPos);
                 }
-                //  TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
-                retChunks.Add(string.Concat(shiftedChars));
+                asciiCharPos = (char)newAsciiCharPos;
 
+                shiftedChars.Add((char)asciiCharPos);
             }
+            // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
+            retChunks.Add(string.Concat(shiftedChars));
+
             return string.Concat(retChunks);
         }
-
-        // https://stackoverflow.com/questions/228038/best-way-to-reverse-a-string
-        //public static string Reverse(string s)
-        //{
-        //    char[] charArray = s.ToCharArray();
-        //    Array.Reverse(charArray);
-        //    return new string(charArray);
-        //}
 
     }
 }
