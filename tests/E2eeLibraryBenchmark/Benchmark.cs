@@ -7,8 +7,8 @@ using System.Text;
 
 namespace E2eeLibraryBenchmark
 {
-    [DryJob]
-    //[ShortRunJob]
+    //[DryJob]
+    [ShortRunJob]
     [MemoryDiagnoser]
     //[RankColumn, MarkdownExporterAttribute.StackOverflow]
     public class Benchmark

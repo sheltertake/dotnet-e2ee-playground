@@ -43,32 +43,32 @@ namespace E2eeLibrary
             // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
 
             //  n is the sum of the ASCII decimal codes of the encryption key
-            var sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
-            var numCharAllowed = MAX_CHAR_CODE - MIN_CHAR_CODE + 1;
-            var restToSum = sumKeyToAsciBytes % numCharAllowed;
-            var retChunks = new List<string>();
+            int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
+            int numCharAllowed = MAX_CHAR_CODE - MIN_CHAR_CODE + 1;
+            int restToSum = sumKeyToAsciBytes % numCharAllowed;
+            int limit = message.Length;
 
-            var shiftedChars = new List<char>();
-            foreach (var c in message)
+            char[] shiftedChars = new char[message.Length];
+            for (int i = 0; i < limit; i++)
             {
-                var asciiCharPos = (int)c;
-                var newAsciiCharPos = leftDirection ?
-                                          asciiCharPos + restToSum :
-                                          asciiCharPos - restToSum;
+                int asciiCharPos = message[i];
+                int newAsciiCharPos = leftDirection ?
+                    asciiCharPos + restToSum :
+                    asciiCharPos - restToSum;
 
                 newAsciiCharPos =
                     leftDirection && newAsciiCharPos > MAX_CHAR_CODE ?
-                    LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE) :
-                    MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
+                        LIMIT_CHAR_CODE + (newAsciiCharPos - MAX_CHAR_CODE) :
+                        MAX_CHAR_CODE - (LIMIT_CHAR_CODE - newAsciiCharPos);
 
                 asciiCharPos = (char)newAsciiCharPos;
 
-                shiftedChars.Add((char)asciiCharPos);
+                shiftedChars[i] = (char)asciiCharPos;
+
             }
             // TRAP 1 - IGNORED - After the operation, each chunk has to be reversed back again
-            retChunks.Add(string.Concat(shiftedChars));
-
-            return string.Concat(retChunks);
+            
+            return string.Concat(shiftedChars);
         }
     }
 }
