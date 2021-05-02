@@ -21,7 +21,7 @@ PS C:\temp\github\dotnet-e2ee-playground> dotnet test
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:    27, Skipped:     0, Total:    27, Duration: 37 ms - E2eePlayegroundUnitTests.dll (net5.0)
+Passed!  - Failed:     0, Passed:    27, Skipped:     0, Total:    27, Duration: 37 ms - E2eePlaygroundUnitTests.dll (net5.0)
 ```
 
 ## How to benchmark
@@ -78,7 +78,7 @@ Constants are used to optimize the code as best I can. In this particular use ca
 Tricky bits here are acceptable.  
 The row key.Select(x => (int)x).Sum() probably can be optimized as well, but is not an hot-spot of this code. 
 The hot-spot is the for-cycle where I iterate each byte to override it with the encrypted/decrypted char code byte.
-   
+
 The body of EncryptDecrypt function below:
 
 ```csharp
@@ -122,6 +122,46 @@ The final version is the best version I think, also if also the unsafe one (in b
 I'd study better what are implications of unsafe projects. Honestly I don't know what unsafe brings to consumers programs.
 If you use bytes in input almost no traffic at all will be produced in the RAM.
 If you use string at least 1 allocation will be done. So if you encrypt 1 giga, 1 giga will be added in memory causing memory traffic and cycles of GC. When thruput is important GC cycles should be avoided because in dotnet GC thread reduce the app thread one  
+
+## Versions improvements
+
+Before performance optimizations I saved each attempt in the benchmark project. The baseline of benchmark is the V1, the first implementation.
+
+NB: seconds are relative to my cpu/ram/ssd. In new M1 performance are 2x more or less.
+
+ - EncryptDecryptV1.cs - 6.2s per 1 million lines to encrypt/decrypt
+   - the code is not optimized yet. It contains some attempt of optimization.
+   - doesn't use chunks and reverse. It seems useless, but my experience is very limited. I can wrong.
+   - it use string.Concat to join string[] and char[]. I discovered after that new string{string[]} and new string{char[]} are better.
+   - it use List<> that is not performing (4 capacity at beginning, each time list is full is doubled creating a new [] and wasting your memory).
+   - encrypt decrypt are two different functions also if they are very similar. I developed them in TDD and optimized only later. 
+ - EncryptDecryptV2.cs - 4.497s per million
+   - contains first attempt of reduce traffic memory with ReadOnlySpan<char>
+   - char[] shiftedChars = new char[message.Length] replace List and its bad performance for this scenario
+   - encrypt decrypt merged because the difference is only the direction of string walk
+ - EncryptDecryptV3.cs - 1.762s per million
+   - new string(shiftedChars) replace string.Concat(shiftedChars). In the 1 million lines benchmark the difference is 1,762.9 vs 4,497.5 ms of v2 and also memory traffic is very lower. string.Concat probably have an implementation similar to List.Add (capacity 4/8/16....)
+ - EncryptDecryptV4.cs - 1.275s per million
+   - tried string.Create introduced in c#7.2
+   - RAM 2x improvement (from 1_221_002_216 to 610_455_184)
+ - EncryptDecryptV5.cs - 0.959s per million + 560 bytes of RAM!!! FERRARI!
+   - unsafe + fixed (char* ptr = message)
+ - EncryptDecryptV6.cs - 1,602s per million (string) + 0.938s (bytes) -> 464B Of RAM from bytes | 915_775_496 for string :(
+   - not confident with unsafe solution I tried to create 2 overloads. Usually you should have streams not strings. The string is a final overhead. Bytes should run in memory and should be editable always with the index. 
+   - Before use unsafe code I'd study better. In my opinion replace a char with another one is a super-safe code. I don't know how the framework doesn't provide a ReplaceAt(index) extension method.
+ - EncryptDecryptV7.cs - 1,779s per million (string) + 0.964s (bytes) -> same memory traffic
+   - in string overload I replaced Encoding.ASCII.GetString with string.Create. In million lines benchmark seems changed almost anything. Probably GetString use string.Create or probably is not this the case to use this new functionality.
+ - EncryptDecrypt FINAL - 1,557s per million (string) + 0.894s (bytes) -> same memory traffic
+   - some opinionated optimization of the body of the cycle (0.2s per million)
+
+ - EncryptDecryptV1ChunksReverse.cs 
+   - contains the code with double reverse and chunks. I wrote a test to ensure to have reason in consider these steps instructions traps and not real steps to be implemented. But honestly my experience with crypto is 2 days. So I can be wrong.
+
+## Branches
+
+ - I wrote code in TDD in different branches and every time I reached my goal I squash the branch and all the commits in the main branch. 
+ - I didn't delete the original branch to leave all the commits, also initials where I didn't find quickly solution also if the very first implementation where already logically [correct](https://github.com/sheltertake/dotnet-e2ee-playground/commit/55902bb9b64cd66c2aa0323c2072e00b998f7a30). The issue was numCharAllowed = 125 - 32. Stupid error that make fail test and make me think I wrong something I don't know (key.size is not the length?), what does mean shift upwards? rotate chars in chunks? if means rotate how is possible overflow 32-125? debugging code I discovered that reverse twice could be a trap. And then I thought also chunks seems useless. But I can wrong. 
+
 
 ## Benchmarks results
 
