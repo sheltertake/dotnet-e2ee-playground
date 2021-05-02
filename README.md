@@ -1,5 +1,171 @@
 # dotnet-e2ee-playground
 
+This repo contains an implementation of encrypt/decrypt given a KEY.
+I'm not an expert of cryptography. 
+
+## Prerequisite
+
+ - dotnet 5 sdk
+## How to
+
+ - git clone https://github.com/sheltertake/dotnet-e2ee-playground.git
+ - cd .\dotnet-e2ee-playground\
+ - dotnet test
+
+```cmd
+PS C:\temp\github> git clone https://github.com/sheltertake/dotnet-e2ee-playground.git
+Cloning into 'dotnet-e2ee-playground'...
+
+PS C:\temp\github> cd .\dotnet-e2ee-playground\
+PS C:\temp\github\dotnet-e2ee-playground> dotnet test
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    27, Skipped:     0, Total:    27, Duration: 37 ms - E2eePlaygroundUnitTests.dll (net5.0)
+```
+
+## How to benchmark
+
+ - dotnet run --project .\tests\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj -c Release
+ - 
+```cmd
+PS C:\temp\github\dotnet-e2ee-playground> dotnet run --project .\tests\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj -c Release
+Available Benchmarks:
+  #0 Benchmarks1000LineText
+  #1 Benchmarks100LineText
+  #2 Benchmarks1MillionLineText
+  #3 BenchmarkSimple
+  #4 BenchmarksLineText
+
+
+You should select the target benchmark(s). Please, print a number of a benchmark (e.g. `0`) or a contained benchmark caption (e.g. `Benchmarks1000LineText`).
+If you want to select few, please separate them with space ` ` (e.g. `1 2 3`).
+You can also provide the class name in console arguments by using --filter. (e.g. `--filter *Benchmarks1000LineText*`).
+
+```
+
+## Implementation
+
+Library contains extensions methods for string and for bytes. In dotnet string are immutable. If you have bytes (eg: http requests) it's better use bytes. If you use the bytes version you don't add memory traffic. 
+Otherwise yes and it can be huge.
+
+There is a unsafe version of Encrypt/Decrypt in the benchmark project. I don't know why dotnet doesn't provide a ReplaceAt helper to modify a specific byte of a string with another byte. It allows when you walk bytes buffer. Not when you want walk a string.
+
+
+```csharp
+public static string Encrypt(this string message, string key)
+{
+    return EncryptDecryptToString(message, key);
+}
+public static byte[] Encrypt(this byte[] message, string key)
+{
+    return EncryptDecrypt(message, key);
+}
+public static string Decrypt(this string message, string key)
+{
+    return EncryptDecryptToString(message, key, false);
+}
+public static byte[] Decrypt(this byte[] message, string key)
+{
+    return EncryptDecrypt(message, key, false);
+}
+```
+
+The function shift each character between 32 and 125 ASCII codes.
+The number of shifts are based on key (sum of char codes), optimized avoiding useless full roundtrip 32->125.
+The modulo operator give us the number of shifts without the useless complete roundtrip in the 32-125 segment.
+Constants are used to optimize the code as best I can. In this particular use case, readability is less important than performance. If the world has to be encrypted/decrypted each cpu clock and each byte in the ram are important. Also for environment.
+Tricky bits here are acceptable.  
+The row key.Select(x => (int)x).Sum() probably can be optimized as well, but is not an hot-spot of this code. 
+The hot-spot is the for-cycle where I iterate each byte to override it with the encrypted/decrypted char code byte.
+
+The body of EncryptDecrypt function below:
+
+```csharp
+// wrapper class omitted
+private const byte MAX_CHAR_CODE_125 = 125;
+private const byte MIN_CHAR_CODE_32 = 32;
+private const byte NUM_CHAR_ALLOWED_94 = MAX_CHAR_CODE_125 - MIN_CHAR_CODE_32 + 1;
+private const byte LOWER_SEGMENT_BOUND_31 = MIN_CHAR_CODE_32 - 1;
+private const byte UPPER_SEGMENT_BOUND_126 = MAX_CHAR_CODE_125 + 1;
+
+private static byte[] EncryptDecrypt(byte[] bytes, string key, bool leftDirection = true)
+{
+    int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
+    int restToSum = sumKeyToAsciBytes % NUM_CHAR_ALLOWED_94;
+    int limit = bytes.Length;
+
+    for (int i = 0; i < limit; i++)
+    {
+        if (leftDirection)
+        {
+            bytes[i] = (byte)(bytes[i] + restToSum);
+            if (bytes[i] > MAX_CHAR_CODE_125)
+                bytes[i] = (byte)(LOWER_SEGMENT_BOUND_31 + (bytes[i] - MAX_CHAR_CODE_125));
+
+        }
+        else
+        {
+            bytes[i] = (byte)(bytes[i] - restToSum);
+            if (bytes[i] < MIN_CHAR_CODE_32)
+                bytes[i] = (byte)(UPPER_SEGMENT_BOUND_126 - (MIN_CHAR_CODE_32 - bytes[i]));
+        }
+
+    }
+    return bytes;
+}
+```
+
+## Considerations
+
+The final version is the best version I think, also if also the unsafe one (in benchmark project EncryptDecryptV5.cs) is valuable.
+I'd study better what are implications of unsafe projects. Honestly I don't know what unsafe brings to consumers programs.
+If you use bytes in input almost no traffic at all will be produced in the RAM.
+If you use string at least 1 allocation will be done. So if you encrypt 1 giga, 1 giga will be added in memory causing memory traffic and cycles of GC. When thruput is important GC cycles should be avoided because in dotnet GC thread reduce the app thread one  
+
+## Versions improvements
+
+Before performance optimizations I saved each attempt in the benchmark project. The baseline of benchmark is the V1, the first implementation.
+
+NB: seconds are relative to my cpu/ram/ssd. In new M1 performance are 2x more or less.
+
+ - EncryptDecryptV1.cs - 6.2s per 1 million lines to encrypt/decrypt
+   - the code is not optimized yet. It contains some attempt of optimization.
+   - doesn't use chunks and reverse. It seems useless, but my experience is very limited. I can wrong.
+   - it use string.Concat to join string[] and char[]. I discovered after that new string{string[]} and new string{char[]} are better.
+   - it use List<> that is not performing (4 capacity at beginning, each time list is full is doubled creating a new [] and wasting your memory).
+   - encrypt decrypt are two different functions also if they are very similar. I developed them in TDD and optimized only later. 
+ - EncryptDecryptV2.cs - 4.497s per million
+   - contains first attempt of reduce traffic memory with ReadOnlySpan<char>
+   - char[] shiftedChars = new char[message.Length] replace List and its bad performance for this scenario
+   - encrypt decrypt merged because the difference is only the direction of string walk
+ - EncryptDecryptV3.cs - 1.762s per million
+   - new string(shiftedChars) replace string.Concat(shiftedChars). In the 1 million lines benchmark the difference is 1,762.9 vs 4,497.5 ms of v2 and also memory traffic is very lower. string.Concat probably have an implementation similar to List.Add (capacity 4/8/16....)
+ - EncryptDecryptV4.cs - 1.275s per million
+   - tried string.Create introduced in c#7.2
+   - RAM 2x improvement (from 1_221_002_216 to 610_455_184)
+ - EncryptDecryptV5.cs - 0.959s per million + 560 bytes of RAM!!! FERRARI!
+   - unsafe + fixed (char* ptr = message)
+ - EncryptDecryptV6.cs - 1,602s per million (string) + 0.938s (bytes) -> 464B Of RAM from bytes | 915_775_496 for string :(
+   - not confident with unsafe solution I tried to create 2 overloads. Usually you should have streams not strings. The string is a final overhead. Bytes should run in memory and should be editable always with the index. 
+   - Before use unsafe code I'd study better. In my opinion replace a char with another one is a super-safe code. I don't know how the framework doesn't provide a ReplaceAt(index) extension method.
+ - EncryptDecryptV7.cs - 1,779s per million (string) + 0.964s (bytes) -> same memory traffic
+   - in string overload I replaced Encoding.ASCII.GetString with string.Create. In million lines benchmark seems changed almost anything. Probably GetString use string.Create or probably is not this the case to use this new functionality.
+ - EncryptDecrypt FINAL - 1,557s per million (string) + 0.894s (bytes) -> same memory traffic
+   - some opinionated optimization of the body of the cycle (0.2s per million)
+
+ - EncryptDecryptV1ChunksReverse.cs 
+   - contains the code with double reverse and chunks. I wrote a test to ensure to have reason in consider these steps instructions traps and not real steps to be implemented. But honestly my experience with crypto is 2 days. So I can be wrong.
+
+## Branches
+
+ - I wrote code in TDD in different branches and every time I reached my goal I squash the branch and all the commits in the main branch. 
+ - I didn't delete the original branch to leave all the commits, also initials where I didn't find quickly solution also if the very first implementation where already logically [correct](https://github.com/sheltertake/dotnet-e2ee-playground/commit/55902bb9b64cd66c2aa0323c2072e00b998f7a30). The issue was numCharAllowed = 125 - 32. Stupid error that make fail test and make me think I wrong something I don't know (key.size is not the length?), what does mean shift upwards? rotate chars in chunks? if means rotate how is possible overflow 32-125? debugging code I discovered that reverse twice could be a trap. And then I thought also chunks seems useless. But I can wrong. 
+
+
+## Benchmarks results
+
+
  - Simple string enc/dec 
  
 ``` ini
