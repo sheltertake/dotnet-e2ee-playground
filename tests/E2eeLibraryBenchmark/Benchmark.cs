@@ -175,12 +175,12 @@ namespace E2eeLibraryBenchmark
         [Benchmark]
         public bool BEncryptDecryptString()
         {
-            return E2eeLibrary.EncryptDecrypt.Encrypt(input, KEY) == E2eeLibrary.EncryptDecrypt.Decrypt(input, KEY);
+            return E2eeLibrary.EncryptDecryptExtensions.Encrypt(input, KEY) == E2eeLibrary.EncryptDecryptExtensions.Decrypt(input, KEY);
         }
         [Benchmark]
         public bool BEncryptDecryptBytes()
         {
-            return E2eeLibrary.EncryptDecrypt.Encrypt(bytes, KEY) == E2eeLibrary.EncryptDecrypt.Decrypt(bytes, KEY);
+            return E2eeLibrary.EncryptDecryptExtensions.Encrypt(bytes, KEY) == E2eeLibrary.EncryptDecryptExtensions.Decrypt(bytes, KEY);
         }
     }
 

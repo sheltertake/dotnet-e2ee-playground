@@ -34,7 +34,7 @@ namespace E2eeLibraryBenchmark.Baseline
         }
         public static byte[] Encrypt(this byte[] message, string key)
         {
-            return EncryptDecript(message, key);
+            return EncryptDecrypt(message, key);
         }
         public static string Decrypt(this string message, string key)
         {
@@ -42,12 +42,12 @@ namespace E2eeLibraryBenchmark.Baseline
         }
         public static byte[] Decrypt(this byte[] message, string key)
         {
-            return EncryptDecript(message, key, false);
+            return EncryptDecrypt(message, key, false);
         }
         private static string EncryptDecryptToString(string message, string key, bool leftDirection = true)
         {
             var bytes = Encoding.ASCII.GetBytes(message);
-            var decrypted = EncryptDecript(bytes, key, leftDirection);
+            var decrypted = EncryptDecrypt(bytes, key, leftDirection);
             //return Encoding.ASCII.GetString(decrypted);
             string result = string.Create(decrypted.Length, decrypted, (chars, buf) =>
             {
@@ -56,7 +56,7 @@ namespace E2eeLibraryBenchmark.Baseline
             });
             return result;
         }
-        private static byte[] EncryptDecript(byte[] bytes, string key, bool leftDirection = true)
+        private static byte[] EncryptDecrypt(byte[] bytes, string key, bool leftDirection = true)
         {
             // TRAP 2 - IGNORED - The message is split in chunks of length key.size
             // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)

@@ -30,21 +30,21 @@ namespace E2eeLibraryBenchmark.Baseline
          */
         public static string Encrypt(this string message, string key)
         {
-            return EncryptDecript(message, key);
+            return EncryptDecrypt(message, key);
         }
         public static string Encrypt(this ReadOnlySpan<char> message, string key)
         {
-            return EncryptDecript(message, key);
+            return EncryptDecrypt(message, key);
         }
         public static string Decrypt(this string message, string key)
         {
-            return EncryptDecript(message, key, false);
+            return EncryptDecrypt(message, key, false);
         }
         public static string Decrypt(this ReadOnlySpan<char> message, string key)
         {
-            return EncryptDecript(message, key, false);
+            return EncryptDecrypt(message, key, false);
         }
-        private static string EncryptDecript(ReadOnlySpan<char> message, string key, bool leftDirection = true)
+        private static string EncryptDecrypt(ReadOnlySpan<char> message, string key, bool leftDirection = true)
         {
             // TRAP 2 - IGNORED - The message is split in chunks of length key.size
             // TRAP 1 - IGNORED - Each chunk is reversed (eg. asdfg --> gfdsa)
