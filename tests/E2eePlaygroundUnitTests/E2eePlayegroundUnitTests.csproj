@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\E2eeLibrary\E2eeLibrary.csproj" />
+    <ProjectReference Include="..\E2eeLibraryBenchmark\E2eeLibraryBenchmark.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using E2eeLibrary;
+﻿using E2eeLibrary;
 using E2eePlayegroundUnitTests.Helpers;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
+using System.Text;
 
 namespace E2eePlayegroundUnitTests
 {
@@ -69,12 +68,12 @@ namespace E2eePlayegroundUnitTests
             byte[] bytes = Encoding.ASCII.GetBytes(input);
             // act
             var sut = bytes.Encrypt(KEY).Decrypt(KEY);
-            var str = Encoding.ASCII.GetString(bytes);
+            var str = Encoding.ASCII.GetString(sut);
             // assert
             input.Should().BeEquivalentTo(str);
         }
 
-        
+
         [Test]
         public void EncryptDecryptStackTest()
         {
@@ -91,13 +90,13 @@ namespace E2eePlayegroundUnitTests
             // arrange
             for (int i = 32; i <= 125; i++)
             {
-                var chr = ((char) i).ToString();
+                var chr = ((char)i).ToString();
                 var decrypted = FindThrow(chr);
 
                 // assert
                 chr.Should().Be(decrypted);
             }
-           
+
         }
 
         [Test]
@@ -111,25 +110,25 @@ namespace E2eePlayegroundUnitTests
         //[Test]
         //public void HugeStringTest()
         //{
-            //var input = string.Concat(StringHelper.LoremIpsum(new Random(), 6, 8, 2, 3, 1_000_000));
-            
-            //var byteCount = Encoding.ASCII.GetByteCount(input);
-            //Console.WriteLine(byteCount); // 152_631_783
+        //var input = string.Concat(StringHelper.LoremIpsum(new Random(), 6, 8, 2, 3, 1_000_000));
 
-            //File.WriteAllText("test.txt", my);
+        //var byteCount = Encoding.ASCII.GetByteCount(input);
+        //Console.WriteLine(byteCount); // 152_631_783
 
-            //byteCount.Should().BeGreaterThan(0);
-            //var sut = input.Encrypt(KEY).Decrypt(KEY);
+        //File.WriteAllText("test.txt", my);
 
-            // assert
-            //input.Should().Be(sut); // 23 seconds
+        //byteCount.Should().BeGreaterThan(0);
+        //var sut = input.Encrypt(KEY).Decrypt(KEY);
+
+        // assert
+        //input.Should().Be(sut); // 23 seconds
         //}
 
         private static string FindThrow(string input)
         {
             foreach (var c in input)
             {
-                var pos = (byte) c;
+                var pos = (byte)c;
                 if (pos < 32 || pos > 125)
                 {
                     Console.WriteLine("input {0} {1}", c, pos);
@@ -141,7 +140,7 @@ namespace E2eePlayegroundUnitTests
             var encrypted = input.Encrypt(KEY);
             foreach (var c in encrypted)
             {
-                var pos = (byte) c;
+                var pos = (byte)c;
                 if (pos < 32 || pos > 125)
                 {
                     Console.WriteLine("encrypted {0} {1} input {2} char {3}", c, pos, input, (byte)input[0]);
@@ -152,7 +151,7 @@ namespace E2eePlayegroundUnitTests
             var decrypted = encrypted.Decrypt(KEY);
             foreach (var c in decrypted)
             {
-                var pos = (byte) c;
+                var pos = (byte)c;
                 if (pos < 32 || pos > 125)
                 {
                     Console.WriteLine("decrypted {0} {1}", c, pos);
