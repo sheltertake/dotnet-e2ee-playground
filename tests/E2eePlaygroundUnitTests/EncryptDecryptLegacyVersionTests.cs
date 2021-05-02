@@ -14,7 +14,7 @@ namespace E2eePlayegroundUnitTests
         [TestCase("titanic", "3(3 -(\"")]
         [TestCase("minecraft", ",(-$\"1 %3")]
         [TestCase("javascript", ") 5 2\"1(/3")]
-        public void EncryptDecrpyptTest(string input, string expected)
+        public void EncryptDecryptTest(string input, string expected)
         {
             //input.Encrypt(KEY).Should().Be(expected);
             //input.Encrypt(KEY).Decrypt(KEY).Should().Be(input);
