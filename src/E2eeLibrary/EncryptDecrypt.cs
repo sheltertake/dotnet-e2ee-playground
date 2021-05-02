@@ -3,7 +3,7 @@ using System.Text;
 
 namespace E2eeLibrary
 {
-    public static class EncryptDecrypt
+    public static class EncryptDecryptExtensions
     {
         private const byte MAX_CHAR_CODE_125 = 125;
         private const byte MIN_CHAR_CODE_32 = 32;
@@ -35,7 +35,7 @@ namespace E2eeLibrary
         }
         public static byte[] Encrypt(this byte[] message, string key)
         {
-            return EncryptDecript(message, key);
+            return EncryptDecrypt(message, key);
         }
         public static string Decrypt(this string message, string key)
         {
@@ -43,12 +43,12 @@ namespace E2eeLibrary
         }
         public static byte[] Decrypt(this byte[] message, string key)
         {
-            return EncryptDecript(message, key, false);
+            return EncryptDecrypt(message, key, false);
         }
         private static string EncryptDecryptToString(string message, string key, bool leftDirection = true)
         {
             var bytes = Encoding.ASCII.GetBytes(message);
-            var decrypted = EncryptDecript(bytes, key, leftDirection);
+            var decrypted = EncryptDecrypt(bytes, key, leftDirection);
             //return Encoding.ASCII.GetString(decrypted);
             string result = string.Create(decrypted.Length, decrypted, (chars, buf) =>
             {
@@ -57,7 +57,7 @@ namespace E2eeLibrary
             });
             return result;
         }
-        private static byte[] EncryptDecript(byte[] bytes, string key, bool leftDirection = true)
+        private static byte[] EncryptDecrypt(byte[] bytes, string key, bool leftDirection = true)
         {
             int sumKeyToAsciBytes = key.Select(x => (int)x).Sum();
             int restToSum = sumKeyToAsciBytes % NUM_CHAR_ALLOWED_94;
